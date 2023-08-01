@@ -1,19 +1,18 @@
 const Tarea = require("../models/tarea");
-
-const getTareas = (req, res) => {
+const { validationResult, check } = require("express-validator");
+const getTareas = async (req, res) => {
+  const tareas = await Tarea.find();
   res.json({
-    msg: "Lista de Tareas",
+    tareas,
   });
 };
 
 const postTareas = async (req, res) => {
-  const { name, done, owner, ownerEmail } = req.body;
+  const { name, id } = req.body;
+  const result = validationResult(req);
 
-  if (!name) {
-    res.status(403);
-    res.send({ error: "name empty" });
-  } else {
-    const tarea = new Tarea({ name, done, owner, ownerEmail });
+  if (result.isEmpty()) {
+    const tarea = new Tarea({ name, id });
 
     await tarea.save();
     res.json({
@@ -21,18 +20,46 @@ const postTareas = async (req, res) => {
       tarea,
     });
   }
+
+  res.send({ errors: result.array() });
 };
 
-const putTareas = (req, res) => {
-  res.json({
-    msg: "Actualizando Tareas",
-  });
+const putTareas = async (req, res) => {
+  const result = validationResult(req);
+  const { id } = req.params;
+  const { name, done } = req.body;
+
+  if (result.isEmpty()) {
+    const tarea = await Tarea.findOneAndUpdate(
+      { id: id },
+      { done: done, name: name },
+      { new: true }
+    );
+
+    res.json({
+      msg: "Actualizando Tareas",
+
+      tarea,
+    });
+  } else {
+    res.send({ errors: result.array() });
+  }
 };
 
-const deleteTareas = (req, res) => {
-  res.json({
-    msg: "Eliminando Tareas",
-  });
+const deleteTareas = async (req, res) => {
+  const result = validationResult(req);
+  const { id } = req.params;
+
+  if (result.isEmpty()) {
+    const tarea = await Tarea.findByIdAndDelete(id);
+
+    res.json({
+      msg: "Eliminando Tareas",
+      tarea,
+    });
+  } else {
+    res.send({ errors: result.array() });
+  }
 };
 
 module.exports = {
