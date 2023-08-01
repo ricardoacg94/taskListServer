@@ -1,7 +1,7 @@
 const Tarea = require("../models/tarea");
 const { validationResult, check } = require("express-validator");
 const getTareas = async (req, res) => {
-  const tareas = await Tarea.find();
+  const tareas = await Tarea.find({});
   res.json({
     tareas,
   });
